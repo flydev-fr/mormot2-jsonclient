@@ -1,0 +1,47 @@
+program Project1;
+
+{$I mormot.defines.inc}
+
+{$APPTYPE CONSOLE}
+
+uses
+  {$I mormot.uses.inc}
+  sysutils,
+  mormot.core.base,
+  mormot.core.os,
+  mormot.core.text,
+  mormot.core.rtti,
+  mormot.core.json,
+  mormot.net.client,
+  petstore.client,
+  petstore.dto;
+
+var
+  petstoreCli: TPetStoreClient;
+  jsonClient: IJsonClient;
+  pets: TPetDynArray;
+begin
+  jsonClient := TJsonClient.Create('localhost:8080', '/api/v3');
+  try
+    jsonClient.SetBearer('ay_mybad.token');
+    petstoreCli := TPetStoreClient.Create(jsonClient);
+    //pets := petstoreCli.FindPetsByStatus(ep2Available);
+    jsonClient.Request(
+      'GET',                  {= method}
+      '/pet/findByStatus',    {= base uri + endpoint}
+      [],
+      [                       {= query name/value array of const}
+      'status', 'available'], {  |- we want avail. pets ('pending', 'sold' ...) }
+      ['jwt', 'eymy.token'],  {}
+      pets,                   {= return value, the json array of pets}
+      TypeInfo(TPetDynArray)  {= type of return value}
+    );
+
+    ConsoleWrite('sent headers:'+CRLF+'%', [jsonClient.Http.Headers], ccYellow);
+    ConsoleWrite('available pets: %', [DynArraySaveJson(pets, TypeInfo(TPetDynArray))]);
+    ConsoleWaitForEnterKey;
+  except
+    on E: Exception do
+      Writeln(E.ClassName, ': ', E.Message);
+  end;
+end.
