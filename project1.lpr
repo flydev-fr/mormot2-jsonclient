@@ -23,21 +23,21 @@ var
 begin
   jsonClient := TJsonClient.Create('localhost:8080', '/api/v3');
   try
-    jsonClient.SetBearer('ay_mybad.token');
+    jsonClient.SetBearer('eyMy.token');
     petstoreCli := TPetStoreClient.Create(jsonClient);
     //pets := petstoreCli.FindPetsByStatus(ep2Available);
     jsonClient.Request(
       'GET',                  {= method}
       '/pet/findByStatus',    {= base uri + endpoint}
-      [],
-      [                       {= query name/value array of const}
-      'status', 'available'], {  |- we want avail. pets ('pending', 'sold' ...) }
-      ['jwt', 'eymy.token'],  {}
+      [],                     {= enpoint (action) fmt}
+      ['status', 'available'], {= query name/value array of const}
+                               {  |- we want avail. pets ('pending', 'sold' ...) }
+      ['My-Header', 'Marmot Pet'],  {= custom headers}
       pets,                   {= return value, the json array of pets}
       TypeInfo(TPetDynArray)  {= type of return value}
     );
 
-    ConsoleWrite('sent headers:'+CRLF+'%', [jsonClient.Http.Headers], ccYellow);
+    ConsoleWrite('resp. headers: %', [petstoreCli.JsonClient.Http.Headers], ccYellow);
     ConsoleWrite('available pets: %', [DynArraySaveJson(pets, TypeInfo(TPetDynArray))]);
     ConsoleWaitForEnterKey;
   except
